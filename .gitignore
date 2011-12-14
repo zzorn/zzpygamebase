@@ -1,6 +1,7 @@
 .idea
 *.*~
 *.iml
+*.pyc
 out/
 target/
 *.log
