@@ -18,30 +18,20 @@ pygame.display.set_caption("FunGfx Editor")
 
 fileName = "src/palmtest.py"
 
-editedParameter = 0
-parameters = ["seed", "height", "bushiness"]
-parameterValues = {"height": 0.5, "bushiness": 0.3}
 
 editedGfx = fungfx.FunGfx()
-
 editedGfx.load(fileName)
 
-
-def changeParamValue(paramNum, delta):
-    value = 0
-    param = parameters[paramNum]
-    if (param in parameterValues):
-        value = parameterValues[param]
-    value += delta
-    #if value > 1: value = 1
-    #if value < 0: value = 0
-    parameterValues[param] = value    
-
+# Keep track of currently edited parameter
+editedParameterName = ""
+editedParameterNum  = 0
 def changeEditedParameter(delta):
-    global editedParameter
-    editedParameter += delta
-    if editedParameter < 0: editedParameter = len(parameters) - 1
-    elif editedParameter >= len(parameters): editedParameter = 0
+    global editedParameterName
+    global editedParameterNum
+    editedParameterNum += delta
+    if editedParameterNum < 0: editedParameterNum = len(editedGfx.parameterNames()) - 1
+    elif editedParameterNum >= len(editedGfx.parameterNames()): editedParameterNum = 0
+    editedParameterName = editedGfx.parameterNames()[editedParameterNum]
 
 
 def drawText(surface, pos, text, color = (128, 128, 128)):
@@ -67,31 +57,36 @@ while running:
         elif event.type == pygame.KEYDOWN and event.key == K_DOWN:
             changeEditedParameter(1)
 
+    # Check if we are adjusting the value
     pressedKeys = pygame.key.get_pressed()
     if pressedKeys[K_RIGHT]:
-        changeParamValue(editedParameter, 0.1)
+        editedGfx.changeParamValue(editedParameterName, 0.1)
     if pressedKeys[K_LEFT]:
-        changeParamValue(editedParameter, -0.1)
+        editedGfx.changeParamValue(editedParameterName, -0.1)
 
  
     screen.fill((0,0,0))
 
+    # Show parameter values, and highlight selected one
     textY = 30
-    for param in parameters:
-        value = 0
-        if param in parameterValues: value = parameterValues[param]
-        editedGfx.setParam(param, value)
-        color = (128, 128, 128)
-        if param == parameters[editedParameter]: color = (255, 255, 255)
-        drawText(screen, (30, textY), param + ": " + str(value), color)
-        textY += 30
+    for paramName in editedGfx.parameterNames():
+        value = editedGfx.getParam(paramName, 0)
         
+        color = (128, 128, 128)
+        if paramName == editedParameterName: color = (255, 255, 255)
+        
+        drawText(screen, (30, textY), paramName + ": " + "%.2f" % value, color)
+        textY += 30
+
+    # Draw gfx        
     editedGfx.draw(screen, 200, 200)
 
     pygame.display.flip()
 
+# Notify about closing, as close delay is kind of long
 screen.fill((0,0,0))
 drawText(screen, (screen.get_rect().centerx / 2, screen.get_rect().centery), "Closing down editor...")
 pygame.display.flip()
+
 pygame.quit ()
 
